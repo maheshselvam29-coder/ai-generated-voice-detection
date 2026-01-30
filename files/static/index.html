@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AI or Human Voice Detector</title>
+</head>
+<body>
+  <h1>AI or Human Voice Detector</h1>
+  <p>Select an audio file (wav or mp3) and click Detect.</p>
+  <input type="file" id="fileInput" accept=".wav,.mp3" />
+  <button id="btn">Detect</button>
+  <pre id="out"></pre>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const btn = document.getElementById('btn');
+    const out = document.getElementById('out');
+
+    btn.onclick = async () => {
+      const f = fileInput.files[0];
+      if (!f) { alert('Choose a file'); return; }
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const b64 = ev.target.result; // includes data:...;base64,
+        const payload = {
+          audio_base64: b64,
+          filename: f.name
+        };
+        out.textContent = 'Uploading and analyzing...';
+        try {
+          const res = await fetch('/detect-voice', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          out.textContent = JSON.stringify(data, null, 2);
+        } catch (e) {
+          out.textContent = 'Error: ' + e.toString();
+        }
+      };
+      reader.readAsDataURL(f);
+    };
+  </script>
+</body>
+</html>
